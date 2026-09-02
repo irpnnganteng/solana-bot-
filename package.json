@@ -10,7 +10,7 @@
   "dependencies": {
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.3",
-    "bs58": "^5.0.0",
+    "bs58": "^4.0.1",
     "dotenv": "^16.4.5",
     "node-telegram-bot-api": "^0.66.0"
   }
