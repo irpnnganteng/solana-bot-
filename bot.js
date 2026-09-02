@@ -1,4 +1,5 @@
 require('dotenv').config();
+const bs58 = require('bs58');
 const TelegramBot = require('node-telegram-bot-api');
 const {
   Connection,
@@ -36,9 +37,12 @@ const connection = new Connection(process.env.RPC_URL, 'confirmed');
 
 let secretKeyArray;
 try {
-  secretKeyArray = Uint8Array.from(JSON.parse(process.env.WALLET_SECRET_KEY));
+  const raw = process.env.WALLET_SECRET_KEY.trim();
+  secretKeyArray = raw.startsWith('[')
+    ? Uint8Array.from(JSON.parse(raw))
+    : bs58.decode(raw);
 } catch (err) {
-  console.error('[FATAL] WALLET_SECRET_KEY tidak valid. Harus JSON array angka.');
+  console.error('[FATAL] WALLET_SECRET_KEY tidak valid.');
   process.exit(1);
 }
 const wallet = Keypair.fromSecretKey(secretKeyArray);
