@@ -47,6 +47,9 @@ try {
 }
 const wallet = Keypair.fromSecretKey(secretKeyArray);
 
+console.log('Wallet aktif:', wallet.publicKey.toBase58());
+console.log('Mint address:', MINT_ADDRESS.toBase58());
+
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 const pendingConfirmation = new Map();
@@ -68,6 +71,10 @@ function formatAmount(rawAmount, decimals) {
   return (Number(rawAmount) / 10 ** decimals).toLocaleString('id-ID', {
     maximumFractionDigits: decimals,
   });
+}
+
+function logError(label, err) {
+  console.error(`[ERROR] ${label}:`, err && err.stack ? err.stack : JSON.stringify(err));
 }
 
 async function getMintInfo() {
@@ -120,13 +127,10 @@ bot.onText(/\/balance/, async (msg) => {
         `Token: ${formatAmount(tokenAccount.amount, mintInfo.decimals)}\n\n` +
         `Alamat: \`${wallet.publicKey.toBase58()}\``,
       { parse_mode: 'Markdown' }
-    );}
-  catch (err) {
-  console.error('Error balance:', err && err.stack ? err.stack : JSON.stringify(err));
-  bot.sendMessage(msg.chat.id, `Gagal mengambil saldo: ${err.message}`);
-}
+    );
   } catch (err) {
-    bot.sendMessage(msg.chat.id, `Gagal mengambil saldo: ${err.message}`);
+    logError('balance', err);
+    bot.sendMessage(msg.chat.id, `Gagal mengambil saldo: ${err.message || 'unknown error, cek log Railway'}`);
   }
 });
 
@@ -144,7 +148,8 @@ bot.onText(/\/info/, async (msg) => {
       { parse_mode: 'Markdown' }
     );
   } catch (err) {
-    bot.sendMessage(msg.chat.id, `Gagal mengambil info token: ${err.message}`);
+    logError('info', err);
+    bot.sendMessage(msg.chat.id, `Gagal mengambil info token: ${err.message || 'unknown error, cek log Railway'}`);
   }
 });
 
@@ -291,8 +296,13 @@ bot.on('message', async (msg) => {
       );
     }
   } catch (err) {
-    bot.sendMessage(msg.chat.id, `❌ Aksi gagal: ${err.message}`);
+    logError(pending.action, err);
+    bot.sendMessage(msg.chat.id, `❌ Aksi gagal: ${err.message || 'unknown error, cek log Railway'}`);
   }
+});
+
+bot.on('polling_error', (err) => {
+  logError('polling', err);
 });
 
 console.log('Bot Telegram Solana berjalan...');
