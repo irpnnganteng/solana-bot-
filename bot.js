@@ -120,7 +120,10 @@ bot.onText(/\/balance/, async (msg) => {
         `Token: ${formatAmount(tokenAccount.amount, mintInfo.decimals)}\n\n` +
         `Alamat: \`${wallet.publicKey.toBase58()}\``,
       { parse_mode: 'Markdown' }
-    );
+    );} catch (err) {
+  console.error('Error balance:', err && err.stack ? err.stack : JSON.stringify(err));
+  bot.sendMessage(msg.chat.id, `Gagal mengambil saldo: ${err.message}`);
+}
   } catch (err) {
     bot.sendMessage(msg.chat.id, `Gagal mengambil saldo: ${err.message}`);
   }
